@@ -1,35 +1,49 @@
-# twt-control
+# Sykerö Track Work Time
 
-A Pebble watchapp/watchface written in C using the Pebble SDK.
+Pebble watchapp companion to the [trackworktime](https://github.com/Sykero-Software/trackworktime)
+Android app. Control your work-time tracking from the wrist: pick a task to clock
+in (or switch tasks), stop tracking, and see the current state — all without
+opening the phone.
+
+Talks to `fi.sykero.trackworktime` via **PebbleKit Android 2**.
+
+## What it does
+
+- **Task list** — shows your tasks with per-task worked time and percentages
+  (% of the task's budget and % of today's total). Select a task to start or
+  switch tracking.
+- **Status + Stop while tracking** — the top row collapses into a combined row
+  showing the active task, total worked time, and the estimated end-of-workday
+  time (auto-pause / flexi aware, pushed from the phone). Selecting it stops
+  tracking.
+- **Robust offline behaviour** — the menu always renders at least a status row
+  (loading / error / no tasks), so the app never shows a blank screen when the
+  phone or trackworktime isn't responding. Commands auto-retry a few times.
+- **Clay config page** — one toggle, *Return to watchface after selecting a task
+  or Stop* (default on), persisted on the watch.
 
 ## Building & running
 
 ```sh
 pebble build                          # build for all targetPlatforms
-pebble install --emulator emery       # install on the emery emulator
-pebble install --phone <ip>           # install to a paired phone
+pebble install --emulator diorite     # install on an emulator (NOT basalt)
+pebble install --cloudpebble app.pbw  # install to a paired phone via the cloud relay
 ```
 
-## Target platforms
-
-`targetPlatforms` in `package.json` controls which watches you build for. The
-modern Pebble hardware is **emery** (Pebble Time 2), **gabbro** (Pebble Round
-2), and **flint** (Pebble 2 Duo); the original Pebble platforms (aplite,
-basalt, chalk, diorite) are included by default for backwards compatibility.
+The build re-injects `companionApp` into the bundled `.pbw` (`wscript` hook) and
+patches `pebble-clay` for the flint/gabbro platforms — see the superrepo
+`CLAUDE.md` for the why.
 
 ## Project layout
 
 ```
-src/c/           C source for the watchapp
-src/pkjs/        PebbleKit JS (phone-side) source, if any
-worker_src/c/    Background worker source, if any
-resources/       Images, fonts, and other bundled resources
-package.json     Project metadata (UUID, platforms, resources, message keys)
-wscript          Build rules — usually no need to edit
+src/c/main.c       watchapp UI (MenuLayer) + PebbleKit message handling
+src/pkjs/          PebbleKit JS: Clay config (config.js) + glue (index.js)
+package.json       UUID, platforms, companionApp, message keys
+wscript            build hooks (companionApp re-inject, Clay platform patch)
 ```
 
-By default this project is configured as a watchapp. To make it a watchface,
-set `pebble.watchapp.watchface` to `true` in `package.json`.
+App name: **Sykerö Track Work Time** · UUID `2B5F824D-533E-40EC-8B77-AE3E28B45B18`.
 
 ## Documentation
 
