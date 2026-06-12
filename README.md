@@ -5,7 +5,9 @@ Android app. Control your work-time tracking from the wrist: pick a task to cloc
 in (or switch tasks), stop tracking, and see the current state — all without
 opening the phone.
 
-Talks to `fi.sykero.trackworktime` via **PebbleKit Android 2**.
+Talks to `fi.sykero.trackworktime` via **PebbleKit Android 2**. The
+[Sykerö TimeStyle](https://github.com/Sykero-Software/TimeStylePebble) watchface
+shows the same tracking status as a strip on your watchface.
 
 ## What it does
 
