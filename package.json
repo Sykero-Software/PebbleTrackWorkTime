@@ -1,0 +1,53 @@
+{
+  "name": "twt-control",
+  "author": "Sykerö Software",
+  "version": "1.0.2",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {
+    "pebble-clay": "^1.0.4"
+  },
+  "pebble": {
+    "displayName": "Sykerö Track Work Time",
+    "uuid": "2B5F824D-533E-40EC-8B77-AE3E28B45B18",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "capabilities": [],
+    "watchapp": {
+      "watchface": false
+    },
+    "companionApp": {
+      "android": {
+        "apps": [
+          {
+            "package": "fi.sykero.trackworktime"
+          }
+        ]
+      }
+    },
+    "messageKeys": [
+      "CMD",
+      "CMD_TASK_ID",
+      "ST_TRACKING",
+      "ST_TASK_NAME",
+      "ST_WORKED_MIN",
+      "TASK_LIST",
+      "CFG_AUTO_RETURN",
+      "ST_REMAIN_MIN"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}
