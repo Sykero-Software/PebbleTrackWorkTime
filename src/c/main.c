@@ -1,6 +1,6 @@
 #include <pebble.h>
 
-#define MAX_TASKS 10
+#define MAX_TASKS 25
 #define NAME_LEN 32
 
 #define SEND_RETRY_MS 2500
@@ -102,8 +102,8 @@ static void parse_task_list(const char *s) {
   s_task_count = 0;
   if (!s || s[0] == '\0') return;
   // 48 slack/row = tab+id(10)+tab+min(10)+tab+pct(10)+tab+dayPct(10)+nl, covering the
-  // 5-field row format. (The AppMessage inbox is capped at 512 B anyway, so the input
-  // never reaches this size.)
+  // 5-field row format. (The AppMessage inbox is capped at 2560 B, so the input never
+  // reaches this size: (32+48)*25 = 2000 B parse buffer.)
   static char buf[(NAME_LEN + 48) * MAX_TASKS];
   strncpy(buf, s, sizeof(buf) - 1);
   buf[sizeof(buf) - 1] = '\0';
@@ -392,7 +392,7 @@ static void init(void) {
   app_message_register_inbox_dropped(inbox_dropped);
   app_message_register_outbox_failed(outbox_failed);
   app_message_register_outbox_sent(outbox_sent);
-  app_message_open(512, 64);
+  app_message_open(2560, 64);
 
   if (persist_exists(PERSIST_KEY_AUTO_RETURN)) {
     s_auto_return = persist_read_bool(PERSIST_KEY_AUTO_RETURN);
