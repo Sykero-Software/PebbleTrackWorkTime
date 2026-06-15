@@ -15,7 +15,7 @@ ready to upload. **Watchapp** listing (requires the full asset set).
 
 ## Assets (not text, not tracked here)
 
-- **Large icon** 144×144 PNG and **small icon** 48×48 PNG — **required**.
+- **Large icon** 144×144 PNG and **small icon** 80×80 PNG — **required**.
 - **Marketing banner** 720×320 PNG — **required** for a watchapp.
 - **Screenshots** — ≥1 per supported platform, **unframed**, native resolution.
 
