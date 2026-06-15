@@ -10,7 +10,7 @@
     "pebble-clay": "^1.0.4"
   },
   "pebble": {
-    "displayName": "Sykerö Track Work Time",
+    "displayName": "Track Work Time",
     "uuid": "2B5F824D-533E-40EC-8B77-AE3E28B45B18",
     "sdkVersion": "3",
     "enableMultiJS": true,
