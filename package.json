@@ -47,7 +47,9 @@
       "ST_REMAIN_MIN"
     ],
     "resources": {
-      "media": []
+      "media": [
+        { "type": "bitmap", "menuIcon": true, "name": "MENU_ICON", "file": "images/menuicon.png" }
+      ]
     }
   }
 }
