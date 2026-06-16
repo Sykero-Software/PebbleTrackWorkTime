@@ -19,10 +19,8 @@ ready to upload. **Watchapp** listing (requires the full asset set).
 - **Marketing banner** 720×320 PNG — **required** for a watchapp.
 - **Screenshots** — ≥1 per supported platform, **unframed**, native resolution.
 
-Banner + icons are auto-composed by the superrepo's
-`scripts/gen-appstore-assets.py`; screenshots by
-`scripts/pebble-appstore-screenshots.sh`. Generated output is gitignored under
-the superrepo `appstore/` (regenerable).
+Banner + icons are auto-composed by `gen-appstore-assets.py`; screenshots by
+`pebble-appstore-screenshots.sh`. Generated output is gitignored (regenerable).
 
 ## Status
 

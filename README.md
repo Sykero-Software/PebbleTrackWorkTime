@@ -33,8 +33,7 @@ pebble install --cloudpebble app.pbw  # install to a paired phone via the cloud 
 ```
 
 The build re-injects `companionApp` into the bundled `.pbw` (`wscript` hook) and
-patches `pebble-clay` for the flint/gabbro platforms — see the superrepo
-`CLAUDE.md` for the why.
+patches `pebble-clay` for the flint/gabbro platforms (see `wscript` for the why).
 
 ## Project layout
 
