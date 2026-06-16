@@ -50,3 +50,7 @@ App name: **Sykerö Track Work Time** · UUID `2B5F824D-533E-40EC-8B77-AE3E28B45
 ## Documentation
 
 Full SDK docs, tutorials, and API reference: <https://developer.repebble.com>
+
+## Support
+
+Questions, feedback or bug reports: <pebble.trackworktime@sykero.fi>
