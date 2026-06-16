@@ -171,7 +171,11 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   // A task-select / stop succeeded: drop back to the watchface (if enabled).
   if (s_exit_on_response) {
     s_exit_on_response = false;
-    if (s_auto_return) window_stack_pop_all(true);
+    if (s_auto_return) {
+      // Action done: exit to the watchface, not back to the launcher/menu.
+      exit_reason_set(APP_EXIT_ACTION_PERFORMED_SUCCESSFULLY);
+      window_stack_pop_all(true);
+    }
   }
 }
 
