@@ -9,6 +9,8 @@ Talks to `fi.sykero.trackworktime` via **PebbleKit Android 2**. The
 [Sykerö TimeStyle](https://github.com/Sykero-Software/TimeStylePebble) watchface
 shows the same tracking status as a strip on your watchface.
 
+**[Install from the Pebble appstore →](https://apps.repebble.com/syker-track-work-time_2c694894e79e439cb8db3033)**
+
 ## What it does
 
 - **Task list** — shows your tasks with per-task worked time and percentages
@@ -53,3 +55,6 @@ Full SDK docs, tutorials, and API reference: <https://developer.repebble.com>
 ## Support
 
 Questions, feedback or bug reports: <pebble.trackworktime@sykero.fi>
+
+Browse all Sykerö Software apps on the Pebble appstore:
+<https://apps.repebble.com/apps/dev/syker-software_9f6c9c6e9ce88af6a0db953e>
