@@ -7,6 +7,7 @@
 #define MAX_AUTO_RETRIES 3
 
 #define PERSIST_KEY_AUTO_RETURN 1
+#define PERSIST_KEY_IDLE_EXIT   2   // idle auto-exit timeout, seconds (0 = off)
 
 // Menu geometry. While tracking, the header collapses and row 0 is a combined
 // status+Stop row (task + big worked time + end estimate; select = Stop), so the
@@ -58,6 +59,40 @@ static bool s_exit_on_response = false;
 
 // User setting (Clay config). When false, never auto-exit. Default on; persisted.
 static bool s_auto_return = true;
+
+// ---- idle auto-exit: return to the watchface after s_idle_timeout_sec of no
+// button press in the list view. Armed in the window's .appear, cancelled in
+// .disappear, reset by menu_select. 0 = off; default 15s (persist + config). ----
+static int       s_idle_timeout_sec = 15;
+static AppTimer *s_idle_timer = NULL;
+
+static void idle_cancel(void) {
+  if (s_idle_timer) { app_timer_cancel(s_idle_timer); s_idle_timer = NULL; }
+}
+static void idle_fire(void *ctx) {
+  s_idle_timer = NULL;
+  exit_reason_set(APP_EXIT_ACTION_PERFORMED_SUCCESSFULLY);
+  window_stack_pop_all(true);   // exit to the watchface, like a confirmed action
+}
+static void idle_reset(void) {
+  if (s_idle_timeout_sec <= 0) { idle_cancel(); return; }
+  if (s_idle_timer) { app_timer_reschedule(s_idle_timer, s_idle_timeout_sec * 1000); }
+  else { s_idle_timer = app_timer_register(s_idle_timeout_sec * 1000, idle_fire, NULL); }
+}
+// Tolerant read: default Clay auto-send delivers a `select` as a CString. -1 =
+// key absent. NB: hand-rolled digit parse — atoi/strtol are NOT exported by the
+// Core firmware (hard fault).
+static int idle_read_seconds(Tuple *t) {
+  if (!t) { return -1; }
+  if (t->type == TUPLE_CSTRING) {
+    int v = 0; const char *p = t->value->cstring;
+    while (*p >= '0' && *p <= '9') { v = v * 10 + (*p++ - '0'); }
+    return v;
+  }
+  return (int)t->value->int32;
+}
+static void idle_appear(Window *w) { idle_reset(); }
+static void idle_disappear(Window *w) { idle_cancel(); }
 
 static bool has_stop_row();
 static void send_cmd(uint8_t cmd, int32_t taskId);
@@ -159,6 +194,14 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     s_auto_return = (t->value->int32 != 0);
     persist_write_bool(PERSIST_KEY_AUTO_RETURN, s_auto_return);
     APP_LOG(APP_LOG_LEVEL_INFO, "CFG_AUTO_RETURN = %d", (int)s_auto_return);
+  }
+  if ((t = dict_find(iter, MESSAGE_KEY_CFG_IDLE_EXIT_SEC))) {
+    int isec = idle_read_seconds(t);
+    if (isec >= 0) {
+      s_idle_timeout_sec = isec;
+      persist_write_int(PERSIST_KEY_IDLE_EXIT, isec);
+      idle_reset();
+    }
   }
 
   // Got a response: connection is healthy, cancel any pending retry.
@@ -356,6 +399,7 @@ static void menu_draw_row(GContext *ctx, const Layer *cell, MenuIndex *idx, void
 }
 
 static void menu_select(MenuLayer *m, MenuIndex *idx, void *c) {
+  idle_reset();
   if (showing_status_row()) {
     request(1, 0);  // manual refresh / retry
     return;
@@ -401,11 +445,16 @@ static void init(void) {
   if (persist_exists(PERSIST_KEY_AUTO_RETURN)) {
     s_auto_return = persist_read_bool(PERSIST_KEY_AUTO_RETURN);
   }
+  if (persist_exists(PERSIST_KEY_IDLE_EXIT)) {
+    s_idle_timeout_sec = persist_read_int(PERSIST_KEY_IDLE_EXIT);
+  }
 
   s_window = window_create();
   window_set_window_handlers(s_window, (WindowHandlers) {
     .load = window_load,
     .unload = window_unload,
+    .appear = idle_appear,
+    .disappear = idle_disappear,
   });
   window_stack_push(s_window, true);
 
@@ -432,6 +481,7 @@ static void init(void) {
 
 static void deinit(void) {
   if (s_retry_timer) { app_timer_cancel(s_retry_timer); s_retry_timer = NULL; }
+  idle_cancel();
   window_destroy(s_window);
 }
 
