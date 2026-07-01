@@ -43,7 +43,8 @@
       "TASK_LIST",
       "CFG_AUTO_RETURN",
       "ST_REMAIN_MIN",
-      "CFG_IDLE_EXIT_SEC"
+      "CFG_IDLE_EXIT_SEC",
+      "CFG_OPEN"
     ],
     "resources": {
       "media": [

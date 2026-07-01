@@ -65,6 +65,7 @@ static bool s_auto_return = true;
 // .disappear, reset by menu_select. 0 = off; default 15s (persist + config). ----
 static int       s_idle_timeout_sec = 15;
 static AppTimer *s_idle_timer = NULL;
+static bool      s_config_open = false;   // true while the phone config page is open (pauses idle)
 
 static void idle_cancel(void) {
   if (s_idle_timer) { app_timer_cancel(s_idle_timer); s_idle_timer = NULL; }
@@ -75,6 +76,7 @@ static void idle_fire(void *ctx) {
   window_stack_pop_all(true);   // exit to the watchface, like a confirmed action
 }
 static void idle_reset(void) {
+  if (s_config_open) return;              // never (re)arm while the phone config page is open
   if (s_idle_timeout_sec <= 0) { idle_cancel(); return; }
   if (s_idle_timer) { app_timer_reschedule(s_idle_timer, s_idle_timeout_sec * 1000); }
   else { s_idle_timer = app_timer_register(s_idle_timeout_sec * 1000, idle_fire, NULL); }
@@ -202,6 +204,14 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
       persist_write_int(PERSIST_KEY_IDLE_EXIT, isec);
       idle_reset();
     }
+  }
+  // Pause the idle auto-exit while the phone config page is open (no watch buttons are
+  // pressed during config, so the idle timer would otherwise fire and kill the app —
+  // and PKJS with it — closing the config page and losing unsaved changes).
+  if ((t = dict_find(iter, MESSAGE_KEY_CFG_OPEN))) {
+    s_config_open = (t->value->int32 != 0);
+    if (s_config_open) { idle_cancel(); APP_LOG(APP_LOG_LEVEL_INFO, "config open: idle paused"); }
+    else               { idle_reset();  APP_LOG(APP_LOG_LEVEL_INFO, "config closed: idle resumed"); }
   }
 
   // Got a response: connection is healthy, cancel any pending retry.
