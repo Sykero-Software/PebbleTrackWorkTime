@@ -114,8 +114,13 @@ static int active_task_index(void) {
   return -1;
 }
 
-// Number of "real" content rows (Stop + tasks), excluding the status row.
-static int content_rows() { return (has_stop_row() ? 1 : 0) + s_task_count; }
+// Number of "real" content rows (Stop + tasks), excluding the status row. The
+// currently-tracked task is not listed — the Stop row already IS that task, and
+// carries its numbers — so it does not count as a visible row.
+static int visible_task_count() {
+  return s_task_count - (active_task_index() >= 0 ? 1 : 0);
+}
+static int content_rows() { return (has_stop_row() ? 1 : 0) + visible_task_count(); }
 static bool showing_status_row() { return content_rows() == 0; }
 
 // Issue a fresh request: reset the auto-retry budget, then send.
@@ -269,7 +274,15 @@ static void outbox_sent(DictionaryIterator *iter, void *context) {
 }
 
 static bool has_stop_row() { return s_tracking; }
-static int task_index_for_row(int row) { return has_stop_row() ? row - 1 : row; }
+// Map a visible row to a real task index, skipping the hidden active task. Note
+// active_task_index() >= 0 implies s_tracking, hence has_stop_row(), so the skip only
+// ever applies to a list that starts at row 1.
+static int task_index_for_row(int row) {
+  int i = has_stop_row() ? row - 1 : row;
+  int hidden = active_task_index();
+  if (hidden >= 0 && i >= hidden) i++;
+  return i;
+}
 
 static uint16_t menu_num_rows(MenuLayer *m, uint16_t section, void *ctx) {
   int c = content_rows();
