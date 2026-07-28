@@ -296,6 +296,21 @@ static bool format_end_estimate(char *buf, size_t len) {
   return true;
 }
 
+// "2:25 · d 39% · b 60%" — the task's own worked time, its share of today's total
+// ("d") and of its budget ("b"); "---" when a percent is unavailable. Shared by the
+// task rows and the Stop row so the two can never drift apart.
+static void format_task_stats(char *buf, size_t len, int ti) {
+  char dbuf[8] = "---", bbuf[8] = "---";
+  if (s_task_day_pct[ti] >= 0) {
+    snprintf(dbuf, sizeof(dbuf), "%d%%", s_task_day_pct[ti] > 999 ? 999 : s_task_day_pct[ti]);
+  }
+  if (s_task_percent[ti] >= 0) {
+    snprintf(bbuf, sizeof(bbuf), "%d%%", s_task_percent[ti] > 999 ? 999 : s_task_percent[ti]);
+  }
+  int wm = s_task_worked_min[ti];
+  snprintf(buf, len, "%d:%02d \xC2\xB7 d %s \xC2\xB7 b %s", wm / 60, wm % 60, dbuf, bbuf);
+}
+
 static void menu_draw_header(GContext *ctx, const Layer *cell, uint16_t section, void *c) {
   GRect b = layer_get_bounds(cell);
   graphics_context_set_text_color(ctx, GColorBlack);
@@ -390,17 +405,8 @@ static void menu_draw_row(GContext *ctx, const Layer *cell, MenuIndex *idx, void
         GRect(8, -4, b.size.w - 12, 28),
         GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 
-    char dbuf[8] = "---", bbuf[8] = "---";
-    if (s_task_day_pct[ti] >= 0) {
-      snprintf(dbuf, sizeof(dbuf), "%d%%", s_task_day_pct[ti] > 999 ? 999 : s_task_day_pct[ti]);
-    }
-    if (s_task_percent[ti] >= 0) {
-      snprintf(bbuf, sizeof(bbuf), "%d%%", s_task_percent[ti] > 999 ? 999 : s_task_percent[ti]);
-    }
-    int wm = s_task_worked_min[ti];
     static char sb[40];
-    snprintf(sb, sizeof(sb), "%d:%02d \xC2\xB7 d %s \xC2\xB7 b %s",
-             wm / 60, wm % 60, dbuf, bbuf);
+    format_task_stats(sb, sizeof(sb), ti);
     graphics_draw_text(ctx, sb,
         fonts_get_system_font(FONT_KEY_GOTHIC_14),
         GRect(8, 21, b.size.w - 12, 17),
