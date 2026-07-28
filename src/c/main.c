@@ -17,6 +17,7 @@
 #define STATUS_ROW_H  44   // connecting/error/no-tasks row (title + subtitle)
 #define STOP_ROW_H    48   // combined status+Stop row while tracking
 #define TASK_ROW_H    42   // name + small stats line
+#define STOP_ROW_H_STATS 65   // Stop row when it also carries the task's stats line
 
 static Window *s_window;
 static MenuLayer *s_menu;
@@ -98,6 +99,20 @@ static void idle_disappear(Window *w) { idle_cancel(); }
 
 static bool has_stop_row();
 static void send_cmd(uint8_t cmd, int32_t taskId);
+
+// Index of the list entry for the task currently being tracked, or -1 when not
+// tracking, when the phone sent no task name, or when the task is not in the list
+// (e.g. it was deactivated). Both sides truncate the same DB name to 32 chars
+// (Android PebbleStatus.MAX_TASK_NAME_LEN == NAME_LEN here), so an exact compare is
+// reliable. Recomputed on demand — never cached — so it follows every
+// parse_task_list(). With duplicate names only the first match is treated as active.
+static int active_task_index(void) {
+  if (!s_tracking || s_status_name[0] == '\0') return -1;
+  for (int i = 0; i < s_task_count; i++) {
+    if (strcmp(s_task_names[i], s_status_name) == 0) return i;
+  }
+  return -1;
+}
 
 // Number of "real" content rows (Stop + tasks), excluding the status row.
 static int content_rows() { return (has_stop_row() ? 1 : 0) + s_task_count; }
@@ -275,7 +290,9 @@ static int16_t menu_header_height(MenuLayer *m, uint16_t section, void *ctx) {
 
 static int16_t menu_get_cell_height(MenuLayer *m, MenuIndex *idx, void *ctx) {
   if (showing_status_row()) return STATUS_ROW_H;
-  if (has_stop_row() && idx->row == 0) return STOP_ROW_H;
+  if (has_stop_row() && idx->row == 0) {
+    return active_task_index() >= 0 ? STOP_ROW_H_STATS : STOP_ROW_H;
+  }
   return TASK_ROW_H;
 }
 
@@ -393,6 +410,18 @@ static void menu_draw_row(GContext *ctx, const Layer *cell, MenuIndex *idx, void
         fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD),
         GRect(4, 14, b.size.w - 8 - est_w, 32),
         GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+
+    // Third line: the tracked task's own numbers, in the same format as a task row
+    // (that row is hidden from the list, so this is where they live).
+    int ati = active_task_index();
+    if (ati >= 0) {
+      static char statsbuf[40];
+      format_task_stats(statsbuf, sizeof(statsbuf), ati);
+      graphics_draw_text(ctx, statsbuf,
+          fonts_get_system_font(FONT_KEY_GOTHIC_14),
+          GRect(4, 46, b.size.w - 8, 17),
+          GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+    }
     return;
   }
 
